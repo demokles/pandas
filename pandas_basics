@@ -1,0 +1,115 @@
+import numpy as np
+import seaborn as sns
+import pandas as pd
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+
+#########################################
+
+#Bu projede titanic veri setindeki seaborn kütüphanesi üzerinde alıştırmalar yapacağız.
+#İlk olarak ilgili kütüphaneyi import edelim.
+df = sns.load_dataset("titanic")
+df.head()
+df.shape
+
+# Titanic veri setindeki kadın ve erkek yolcuların sayısını bulunuz.
+#########################################
+df["sex"].value_counts()
+
+#########################################
+# Görev 4: pclass değişkeninin unique değerlerinin sayısını bulunuz.
+#########################################
+df["pclass"].unique()
+
+#########################################
+# Görev 5:  pclass ve parch değişkenlerinin unique değerlerinin sayısını bulunuz.
+#########################################
+df[["pclass", "parch"]].nunique()
+
+#########################################
+# Görev 6: embarked değişkeninin tipini kontrol ediniz. Tipini category olarak değiştiriniz. Tekrar tipini kontrol ediniz.
+#########################################
+df["embarked"].dtype # object
+df["embarked"] = df["embarked"].astype("category")
+df["embarked"].dtype # category
+
+#########################################
+# embarked değeri C olanlara head atalım.
+#########################################
+df[df["embarked"] == "C"].head(20)
+
+
+#  embarked değeri S olmayanları bulalım.
+#########################################
+df[df["embarked"] != "S"]["embarked"].unique()
+
+# Yaşı 30 dan küçük ve kadın olan yolcuları bulalım.
+#########################################
+a = df[(df["age"] < 30) & (df["sex"]=="female")]
+
+b = df.loc[(df["age"] < 30) & (df["sex"] == "female")]
+
+
+
+# Her bir değişkendeki boş değerlerin toplamını bulalım.
+#########################################
+df.isnull().sum()
+
+#########################################
+#who değişkenini dataframe'den düşürelim.
+#########################################
+df.drop("who",axis=1,inplace=True)
+df.head()
+
+
+# deck değişkenindeki boş değerleri deck değişkenin en çok tekrar eden değeri (mode) ile dolduralım.
+#########################################
+deck_mode = df["deck"].mode()[0]
+df["deck"].fillna(deck_mode,inplace=True)
+
+# survived değişkeninin Pclass ve Cinsiyet değişkenleri kırılımınında sum, count, mean değerlerini bulunuz.
+
+df.groupby(["pclass","sex"]).agg({"survived":["sum","count","mean"]})
+
+df.pivot_table(values="survived",index=["pclass","sex"],aggfunc=["sum","count","mean"])
+
+#########################################
+# Görev 16:  yaşın altında olanlar 1, 30'a eşit ve üstünde olanlara 0 vericek bir fonksiyon yazınız.
+# Yazdığınız fonksiyonu kullanarak titanik veri setinde age_flag adında bir değişken oluşturunuz oluşturunuz. (apply ve lambda yapılarını kullanınız)
+#########################################
+def age_30(age):
+    if age<30:
+        return 1
+    else:
+        return 0
+
+df["age_flag"] = df["age"].apply(lambda x : age_30(x))
+
+# 2.Yöntem
+df["age_flag"] = df["age"].apply(lambda x: 1 if x<30 else 0)
+df.head()
+
+
+#########################################
+# Görev 17: Seaborn kütüphanesi içerisinden Tips veri setini tanımlayınız.
+#########################################
+df = sns.load_dataset("tips")
+df.head()
+df.shape
+
+
+#########################################
+# Görev 18: Time değişkeninin kategorilerine (Dinner, Lunch) göre total_bill  değerlerinin toplamını, min, max ve ortalamasını bulunuz.
+#########################################
+df.groupby("time").agg({"total_bill": ["sum", "min", "max", "mean"]})
+
+#########################################
+# Görev 19: Günlere ve time göre total_bill değerlerinin toplamını, min, max ve ortalamasını bulunuz.
+#########################################
+df.groupby(["day","time"]).agg({"total_bill": ["sum", "min", "max", "mean"]})
+
+#########################################
+# Görev 20:Lunch zamanına ve kadın müşterilere ait total_bill ve tip  değerlerinin day'e göre toplamını, min, max ve ortalamasını bulunuz.
+#########################################
+df[(df["time"]=="Lunch") & (df["sex"]=="Female")].groupby("day").agg({"total_bill": ["sum", "mean", "max", "min"],
+                                                                      "tip":  ["sum", "mean", "max", "min"]})
